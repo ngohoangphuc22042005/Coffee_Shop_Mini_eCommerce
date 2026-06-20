@@ -84,7 +84,7 @@
                                         <svg style="width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                         Sửa
                                     </a>
-                                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" onsubmit="return confirm('Xóa sản phẩm này?');" style="display: inline-block;">
+                                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="delete-product-form" style="display: inline-block;">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-xs" style="display: inline-flex; align-items: center; gap: 0.25rem;">
                                             <svg style="width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
@@ -111,4 +111,65 @@
         {{ $products->links('pagination::bootstrap-4') }}
     </div>
 
+    {{-- Custom Confirmation Modal --}}
+    <div id="delete-confirm-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: var(--bg-card); padding: 2.25rem 2rem; border-radius: var(--radius-lg); width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); margin: 1rem; text-align: center; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="width: 56px; height: 56px; background: rgba(220,38,38,0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+                <svg style="width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2;" viewBox="0 0 24 24">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text);">Xác nhận xóa sản phẩm</h3>
+            <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 1.75rem; line-height: 1.5;">Bạn có chắc chắn muốn xóa sản phẩm này? Thao tác này không thể hoàn tác.</p>
+            <div class="flex gap-2" style="justify-content: center;">
+                <button type="button" id="btn-cancel-delete" class="btn btn-outline" style="flex: 1; padding: 0.65rem 1rem; font-size: 0.9rem;">Hủy bỏ</button>
+                <button type="button" id="btn-confirm-delete" class="btn btn-danger" style="flex: 1; padding: 0.65rem 1rem; font-size: 0.9rem;">Xóa sản phẩm</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes modalFadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteForms = document.querySelectorAll('.delete-product-form');
+        const modal = document.getElementById('delete-confirm-modal');
+        const cancelBtn = document.getElementById('btn-cancel-delete');
+        const confirmBtn = document.getElementById('btn-confirm-delete');
+        let formToSubmit = null;
+
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                formToSubmit = this;
+                modal.style.display = 'flex';
+            });
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            formToSubmit = null;
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                formToSubmit = null;
+            }
+        });
+    });
+</script>
+@endpush
 @endsection
